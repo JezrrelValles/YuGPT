@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
 import Accordion from "@mui/material/Accordion";
-import AccordionActions from "@mui/material/AccordionActions";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import CircleIcon from "@mui/icons-material/Circle";
 import DragDropComponent from "./components/DragDropComponent";
 import Navbar from "./components/Navbar";
-import { ContentPaste, CleaningServices } from "@mui/icons-material";
+import { ContentPaste, CleaningServices, Download } from "@mui/icons-material";
 
 function App() {
   const [selectedBank, setSelectedBank] = useState("BANAMEX");
@@ -18,12 +16,23 @@ function App() {
   const [extractedText, setExtractedText] = useState("");
   const [resultText, setResultText] = useState("");
   const [excelText, setExcelText] = useState("");
+  const [previousText, setPreviousText] = useState("");
   const [comparisonResult, setComparisonResult] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingAux, setLoadingAux] = useState(false);
+  const [loadingPrevious, setLoadingPrevious] = useState(false);
   const [loadingComparison, setLoadingComparison] = useState(false);
   const [differences, setDifferences] = useState("");
+  const [stepOne, setStepOne] = useState(false);
+  const [stepTwo, setStepTwo] = useState(false);
+  const [stepThree, setStepThree] = useState(false);
+  const [stepFour, setStepFour] = useState(false);
+  const [stepFive, setStepFive] = useState(false);
+  const [stepSix, setStepSix] = useState(false);
+  const [stepSeven, setStepSeven] = useState(false);
+  const [stepEight, setStepEight] = useState(false);
+  const [selectedPrevious, setSelectedPrevious] = useState(null);
 
   const handleBankChange = (e) => {
     setSelectedBank(e.target.value);
@@ -31,10 +40,18 @@ function App() {
 
   const handlePDFChange = (file) => {
     setSelectedPDF(file);
+    setStepOne(true);
+    setStepTwo(true);
   };
 
   const handleExcelChange = (file) => {
     setSelectedExcel(file);
+    setStepFour(true);
+  };
+
+  const handlePrevious = (file) => {
+    setSelectedPrevious(file);
+    setStepSix(true);
   };
 
   const normalizeCsvTransactions = (csvTransactions) => {
@@ -124,6 +141,7 @@ function App() {
       setError("Error al procesar el archivo.");
     } finally {
       setLoading(false);
+      setStepThree(true);
     }
   };
 
@@ -165,8 +183,52 @@ function App() {
       setError("Error al procesar el archivo.");
     } finally {
       setLoadingAux(false);
+      setStepFive(true);
     }
   };
+
+  const handleSubmitPrevious = async (e) => {
+    e.preventDefault();
+    setLoadingPrevious(true);
+    setError(null);
+    setExcelText("");
+
+    if (!selectedPrevious) {
+      setError("Por favor, selecciona un archivo válido");
+      setLoadingPrevious(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedPrevious);
+
+    try {
+      const response = await fetch("http://localhost:8000/convert_csv/", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al procesar el archivo.");
+      }
+
+      const data = await response.json();
+
+      if (data.aux_transactions) {
+        const csvTransactions = data.aux_transactions;
+        setPreviousText(JSON.stringify(csvTransactions, null, 2));
+      } else {
+        throw new Error("No se encontraron transacciones");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+      setError("Error al procesar el archivo.");
+    } finally {
+      setLoadingPrevious(false);
+      setStepSeven(true);
+    }
+  };
+
 
   const handleComparison = async () => {
     setLoadingComparison(true);
@@ -564,17 +626,17 @@ function App() {
   return (
     <div className="h-full w-full bg-[#EEEEEE]">
       <Navbar />
-      <div className="grid grid-cols-3 gap-4 p-4 h-full rounded-lg">
+      <div className="grid grid-cols-4 gap-4 p-4 h-full rounded-lg">
+        {/* Estado de Cuenta */}
         <div className="bg-white">
-          <Accordion defaultExpanded>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel1-content"
-              id="panel1-header"
-            >
+          <Accordion expanded={true}>
+            <AccordionSummary aria-controls="panel1-content" id="panel1-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon className="text-blue-500" fontSize="large" />
+                  <CircleIcon
+                    className={stepOne ? "text-green-500" : "text-gray-400"}
+                    fontSize="large"
+                  />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                     1
                   </Typography>
@@ -606,15 +668,14 @@ function App() {
             </AccordionDetails>
           </Accordion>
 
-          <Accordion>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel2-content"
-              id="panel2-header"
-            >
+          <Accordion expanded={stepOne}>
+            <AccordionSummary aria-controls="panel2-content" id="panel2-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon className="text-blue-500" fontSize="large" />
+                  <CircleIcon
+                    className={stepTwo ? "text-green-500" : "text-gray-400"}
+                    fontSize="large"
+                  />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                     2
                   </Typography>
@@ -653,67 +714,74 @@ function App() {
             </AccordionDetails>
           </Accordion>
 
-          <Accordion>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel3-content"
-              id="panel3-header"
-            >
+          <Accordion expanded={stepTwo}>
+            <AccordionSummary aria-controls="panel3-content" id="panel3-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon className="text-blue-500" fontSize="large" />
+                  <CircleIcon
+                    className={stepThree ? "text-green-500" : "text-gray-400"}
+                    fontSize="large"
+                  />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                     3
                   </Typography>
                 </div>
                 <Typography variant="h6" component="span">
-                  Resultado
+                  Extracción
                 </Typography>
               </div>
             </AccordionSummary>
             <AccordionDetails>
-              <div className="relative h-full w-full">
-                {loading && (
+              {loading && (
+                <div className="relative min-h-32 w-full">
                   <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
                   </div>
-                )}
-                <textarea
+                </div>
+              )}
+              {/* <textarea
                   readOnly
                   value={resultText}
                   disabled
                   className="w-full min-h-64 rounded-lg border-4 border-blue-500 p-4"
-                ></textarea>
+                ></textarea> */}
+              <div className="flex justify-center">
+                {/* <Button variant="outlined" onClick={handleCleanPDF}>
+                <CleaningServices />
+              </Button> */}
+                {/* <Button variant="outlined" onClick={handleCopyPDF}>
+                <ContentPaste />
+              </Button> */}
+              {!stepThree && (
+                <Button
+                  variant="contained"
+                  disabled={loading ? true : false}
+                  onClick={handleSubmit}
+                  className="w-1/2 bg-blue-500 text-center hover:bg-blue-500"
+                >
+                  {loading ? "Cargando..." : "Iniciar"}
+                </Button>
+                )}
+                {stepThree && (
+                  <Typography>
+                    Extracción realizada con éxito.
+                  </Typography>
+                )}
               </div>
             </AccordionDetails>
-            <AccordionActions>
-              <Button variant="outlined" onClick={handleCleanPDF}>
-                <CleaningServices />
-              </Button>
-              <Button variant="outlined" onClick={handleCopyPDF}>
-                <ContentPaste />
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-                className="w-1/2 bg-blue-500 text-center hover:bg-blue-500"
-              >
-                Extraer
-              </Button>
-            </AccordionActions>
           </Accordion>
         </div>
 
+        {/* Auxiliar */}
         <div className="bg-white">
-          <Accordion>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel1-content"
-              id="panel1-header"
-            >
+          <Accordion expanded={stepThree}>
+            <AccordionSummary aria-controls="panel1-content" id="panel1-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon className="text-red-500" fontSize="large" />
+                  <CircleIcon
+                    className={stepFour ? "text-green-500" : "text-gray-400"}
+                    fontSize="large"
+                  />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                     4
                   </Typography>
@@ -733,7 +801,7 @@ function App() {
                   variant="subtitle2"
                   className="text-black text-center"
                 >
-                  * El formato permitido es .XSLX o .CSV
+                  * El formato permitido es .XSLX
                 </Typography>
               </div>
               {/* <label className="w-1/2 p-2 cursor-pointer bg-red-700 text-white font-bold text-center rounded-lg hover:bg-red-500">
@@ -748,111 +816,200 @@ function App() {
             </AccordionDetails>
           </Accordion>
 
-          <Accordion>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel3-content"
-              id="panel3-header"
-            >
+          <Accordion expanded={stepFour}>
+            <AccordionSummary aria-controls="panel3-content" id="panel3-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon className="text-red-500" fontSize="large" />
+                  <CircleIcon
+                    className={stepFive ? "text-green-500" : "text-gray-400"}
+                    fontSize="large"
+                  />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                     5
                   </Typography>
                 </div>
                 <Typography variant="h6" component="span">
-                  Resultado
+                  Extracción
                 </Typography>
               </div>
             </AccordionSummary>
             <AccordionDetails>
-              <div className="relative h-full w-full">
-                {loadingAux && (
+            {loadingAux && (
+                <div className="relative min-h-32 w-full">
                   <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-red-700"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
                   </div>
-                )}
-                <textarea
+                </div>
+              )}
+                {/* <textarea
                   readOnly
                   value={excelText}
                   disabled
                   className="min-h-64 w-full rounded-lg border-4 border-red-500 p-4"
-                ></textarea>
+                ></textarea> */}
+              <div className="flex justify-center">
+              {!stepFive && (
+                <Button
+                  variant="contained"
+                  disabled={loadingAux ? true : false}
+                  onClick={handleSubmitAux}
+                  className="w-1/2 bg-blue-500 text-center hover:bg-blue-500"
+                >
+                  {loadingAux ? "Cargando..." : "Iniciar"}
+                </Button>
+                )}
+                {stepFive && (
+                  <Typography>
+                    Extracción realizada con éxito.
+                  </Typography>
+                )}
+                {/* <Button variant="outlined" onClick={handleCleanExcel}>
+                <CleaningServices />
+              </Button> */}
+                {/* <Button variant="outlined" onClick={handleCopyExcel}>
+                <ContentPaste />
+              </Button> */}
               </div>
             </AccordionDetails>
-            <AccordionActions>
-              <Button variant="outlined" onClick={handleCleanExcel}>
-                <CleaningServices />
-              </Button>
-              <Button variant="outlined" onClick={handleCopyExcel}>
-                <ContentPaste />
-              </Button>
-              <Button
-                variant="contained"
-                className="w-1/2 p-2 bg-blue-500 hover:bg-blue-700"
-                onClick={handleSubmitAux}
-              >
-                Extraer
-              </Button>
-            </AccordionActions>
           </Accordion>
         </div>
 
+        {/* Conciliación Previa */}
         <div className="bg-white">
-          <Accordion>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="panel3-content"
-              id="panel3-header"
-            >
+          <Accordion expanded={stepFive}>
+            <AccordionSummary aria-controls="panel1-content" id="panel1-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon className="text-purple-500" fontSize="large" />
+                  <CircleIcon
+                    className={stepSix ? "text-green-500" : "text-gray-400"}
+                    fontSize="large"
+                  />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                     6
                   </Typography>
                 </div>
                 <Typography variant="h6" component="span">
-                  Verificar
+                  Conciliación previa
                 </Typography>
               </div>
             </AccordionSummary>
             <AccordionDetails>
-              <div className="text-center p-4">
-                <Typography variant="body1" component="span">
-                  Haz clic en el botón para comparar ambos archivos.
+              <div className="flex flex-col p-4 gap-4">
+                <DragDropComponent
+                  onFileSelect={handlePrevious}
+                  mode="excel-csv"
+                />
+                <Typography
+                  variant="subtitle2"
+                  className="text-black text-center"
+                >
+                  * El formato permitido es .XSLX
                 </Typography>
               </div>
+            </AccordionDetails>
+          </Accordion>
+
+          <Accordion expanded={stepSix}>
+            <AccordionSummary aria-controls="panel3-content" id="panel3-header">
+              <div className="flex gap-4 items-center">
+                <div className="relative">
+                  <CircleIcon
+                    className={stepSeven ? "text-green-500" : "text-gray-400"}
+                    fontSize="large"
+                  />
+                  <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
+                    7
+                  </Typography>
+                </div>
+                <Typography variant="h6" component="span">
+                  Extracción
+                </Typography>
+              </div>
+            </AccordionSummary>
+            <AccordionDetails>
+            {loadingPrevious && (
+                <div className="relative min-h-32 w-full">
+                  <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
+                  </div>
+                </div>
+              )}
+                {/* <textarea
+                  readOnly
+                  value={excelText}
+                  disabled
+                  className="min-h-64 w-full rounded-lg border-4 border-red-500 p-4"
+                ></textarea> */}
+              <div className="flex justify-center">
+                {/* <Button variant="outlined" onClick={handleCleanExcel}>
+                <CleaningServices />
+              </Button> */}
+                {/* <Button variant="outlined" onClick={handleCopyExcel}>
+                <ContentPaste />
+              </Button> */}
+              {!stepSeven && (
+                <Button
+                  variant="contained"
+                  disabled={loadingPrevious ? true : false}
+                  onClick={handleSubmitPrevious}
+                  className="w-1/2 bg-blue-500 text-center hover:bg-blue-500"
+                >
+                  {loadingPrevious ? "Cargando..." : "Iniciar"}
+                </Button>
+                )}
+                {stepSeven && (
+                  <Typography>
+                    Extracción realizada con éxito.
+                  </Typography>
+                )}
+              </div>
+            </AccordionDetails>
+          </Accordion>
+        </div>
+
+        {/* Conciliación Actual */}
+        <div className="bg-white">
+          <Accordion expanded={stepSeven}>
+            <AccordionSummary aria-controls="panel3-content" id="panel3-header">
+              <div className="flex gap-4 items-center">
+                <div className="relative">
+                  <CircleIcon
+                    className={stepEight ? "text-green-500" : "text-gray-400"}
+                    fontSize="large"
+                  />
+                  <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
+                    8
+                  </Typography>
+                </div>
+                <Typography variant="h6" component="span">
+                  Conciliación actual
+                </Typography>
+              </div>
+            </AccordionSummary>
+            <AccordionDetails>
               <div className="relative h-full w-full">
                 {loadingComparison && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-purple-700"></div>
                   </div>
                 )}
-                <textarea
+                {/* <textarea
                   readOnly
                   value={differences}
                   disabled
                   className="w-full min-h-64 rounded-md border-4 border-purple-700 p-4"
-                ></textarea>
+                ></textarea> */}
+              </div>
+              <div className="flex gap-4 justify-center">
+                <Button
+                  variant="contained"
+                  className="w-1/2 p-2 bg-blue-500 hover:bg-blue-700"
+                  onClick={handleVerify}
+                >
+                  Generar
+                </Button>
               </div>
             </AccordionDetails>
-            <AccordionActions>
-              <Button variant="outlined" onClick={handleCleanDifferences}>
-                <CleaningServices />
-              </Button>
-              <Button variant="outlined" onClick={handleCopyDifferences}>
-                <ContentPaste />
-              </Button>
-              <Button
-                variant="contained"
-                className="w-1/2 p-2 bg-blue-500 hover:bg-blue-700"
-                onClick={handleVerify}
-              >
-                Verificar
-              </Button>
-            </AccordionActions>
           </Accordion>
         </div>
       </div>
