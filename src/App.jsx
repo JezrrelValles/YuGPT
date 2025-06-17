@@ -11,19 +11,19 @@ import { Download, Refresh } from "@mui/icons-material";
 
 function App() {
   const [selectedBank, setSelectedBank] = useState("BANAMEX");
-  const [selectedPDF, setSelectedPDF] = useState(null);
-  const [selectedExcel, setSelectedExcel] = useState(null);
-  const [extractedText, setExtractedText] = useState("");
-  const [resultText, setResultText] = useState("");
-  const [excelText, setExcelText] = useState("");
-  const [previousText, setPreviousText] = useState("");
-  const [comparisonResult, setComparisonResult] = useState("");
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [selectedAux, setSelectedAux] = useState(null);
+  const [extractedText, setExtractedAccount] = useState("");
+  const [assistantResult, setAssistantResult] = useState("");
+  const [auxResult, setAuxResult] = useState("");
+  const [selectedPreviousConciliation, setSelectedPreviousConciliation] = useState(null);
+  const [previousConciliationResult, setPreviousConciliationResult] = useState("");
+  const [conciliationResult, setConciliationResult] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingAux, setLoadingAux] = useState(false);
   const [loadingPrevious, setLoadingPrevious] = useState(false);
-  const [loadingComparison, setLoadingComparison] = useState(false);
-  const [differences, setDifferences] = useState("");
+  const [loadingConciliation, setLoadingConciliation] = useState(false);
   const [stepOne, setStepOne] = useState(false);
   const [stepTwo, setStepTwo] = useState(false);
   const [stepThree, setStepThree] = useState(false);
@@ -32,56 +32,32 @@ function App() {
   const [stepSix, setStepSix] = useState(false);
   const [stepSeven, setStepSeven] = useState(false);
   const [stepEight, setStepEight] = useState(false);
-  const [selectedPrevious, setSelectedPrevious] = useState(null);
 
   const handleBankChange = (e) => {
     setSelectedBank(e.target.value);
   };
 
-  const handlePDFChange = (file) => {
-    setSelectedPDF(file);
+  const handleAccountChange = (file) => {
+    setSelectedAccount(file);
     setStepOne(true);
     setStepTwo(true);
   };
 
-  const handleExcelChange = (file) => {
-    setSelectedExcel(file);
+  const handleAuxChange = (file) => {
+    setSelectedAux(file);
     setStepFour(true);
   };
 
-  const handlePrevious = (file) => {
-    setSelectedPrevious(file);
+  const handlePreviousConciliation = (file) => {
+    setSelectedPreviousConciliation(file);
     setStepSix(true);
-  };
-
-  const normalizeCsvTransactions = (csvTransactions) => {
-    return csvTransactions.map((t) => {
-      // Verificar si los campos son nulos o están vacíos
-      const abonos = t.Abonos ? t.Abonos.replace(/,/g, "") : "0";
-      const cargos = t.Cargos ? t.Cargos.replace(/,/g, "") : "0";
-      const saldo = t.Saldo ? t.Saldo.replace(/,/g, "") : "0";
-
-      // Determinar el tipo de transacción
-      const tipo = t.Abonos ? "deposito" : "retiro";
-
-      // Convertir a números
-      const monto = parseFloat(abonos) || parseFloat(cargos);
-      const saldoNum = parseFloat(saldo);
-
-      return {
-        fecha: t.Fecha ? t.Fecha.toUpperCase() : "FECHA_DESCONOCIDA", // Manejar fechas nulas
-        tipo: tipo,
-        monto: monto,
-        saldo: saldoNum,
-      };
-    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setResultText("");
+    setAssistantResult("");
 
     if (!selectedBank) {
       setError("Por favor, selecciona un banco válido.");
@@ -89,18 +65,18 @@ function App() {
       return;
     }
 
-    if (!selectedPDF) {
+    if (!selectedAccount) {
       setError("Por favor, selecciona un archivo válido");
       setLoading(false);
       return;
     }
 
     const formData = new FormData();
-    formData.append("file", selectedPDF);
+    formData.append("file", selectedAccount);
     formData.append("bank", selectedBank);
 
     try {
-      const response = await fetch("http://localhost:8000/extract_pdf/", {
+      const response = await fetch("https://yugpt-server.onrender.com/extract_account/", {
         method: "POST",
         body: formData,
       });
@@ -110,9 +86,9 @@ function App() {
       }
 
       const data = await response.json();
-      setExtractedText(data);
+      setExtractedAccount(data);
 
-      const secondResponse = await fetch("http://localhost:8000/api/new/", {
+      const secondResponse = await fetch("https://yugpt-server.onrender.com/api/new/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -132,7 +108,7 @@ function App() {
         const pdfTransactions = JSON.parse(
           result.assistant_transactions
         ).transactions;
-        setResultText(JSON.stringify(pdfTransactions, null, 2));
+        setAssistantResult(JSON.stringify(pdfTransactions, null, 2));
       } else {
         throw new Error("No se encontraron transacciones en la respuesta");
       }
@@ -149,19 +125,19 @@ function App() {
     e.preventDefault();
     setLoadingAux(true);
     setError(null);
-    setExcelText("");
+    setAuxResult("");
 
-    if (!selectedExcel) {
+    if (!selectedAux) {
       setError("Por favor, selecciona un archivo válido");
       setLoadingAux(false);
       return;
     }
 
     const formData = new FormData();
-    formData.append("file", selectedExcel);
+    formData.append("file", selectedAux);
 
     try {
-      const response = await fetch("http://localhost:8000/extract_aux/", {
+      const response = await fetch("https://yugpt-server.onrender.com/extract_aux/", {
         method: "POST",
         body: formData,
       });
@@ -174,7 +150,7 @@ function App() {
 
       if (data.aux_transactions) {
         const csvTransactions = data.aux_transactions;
-        setExcelText(JSON.stringify(csvTransactions, null, 2));
+        setAuxResult(JSON.stringify(csvTransactions, null, 2));
       } else {
         throw new Error("No se encontraron transacciones");
       }
@@ -191,19 +167,19 @@ function App() {
     e.preventDefault();
     setLoadingPrevious(true);
     setError(null);
-    setPreviousText("");
+    setPreviousConciliationResult("");
 
-    if (!selectedPrevious) {
+    if (!selectedPreviousConciliation) {
       setError("Por favor, selecciona un archivo válido");
       setLoadingPrevious(false);
       return;
     }
 
     const formData = new FormData();
-    formData.append("file", selectedPrevious);
+    formData.append("file", selectedPreviousConciliation);
 
     try {
-      const response = await fetch("http://localhost:8000/extract_previous/", {
+      const response = await fetch("https://yugpt-server.onrender.com/extract_previous/", {
         method: "POST",
         body: formData,
       });
@@ -216,7 +192,7 @@ function App() {
 
       if (data.previous_transactions) {
         const previousTransactions = data.previous_transactions;
-        setPreviousText(JSON.stringify(previousTransactions, null, 2));
+        setPreviousConciliationResult(JSON.stringify(previousTransactions, null, 2));
       } else {
         throw new Error("No se encontraron transacciones");
       }
@@ -230,13 +206,13 @@ function App() {
   };
 
   const handleVerify = async () => {
-    setLoadingComparison(true);
+    setLoadingConciliation(true);
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 30000)); // Espera 30 segundos
 
       const response = await fetch(
-        "http://127.0.0.1:8000/create_conciliation/",
+        "https://yugpt-server.onrender.com//create_conciliation/",
         {
           method: "POST",
         }
@@ -260,7 +236,7 @@ function App() {
     } catch (error) {
       console.error("Error:", error);
     } finally {
-      setLoadingComparison(false);
+      setLoadingConciliation(false);
       setStepEight(true);
     }
   };
@@ -268,7 +244,7 @@ function App() {
   const handleDownload = async () => {
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/create_conciliation/",
+        "https://yugpt-server.onrender.com/create_conciliation/",
         {
           method: "POST",
         }
@@ -298,74 +274,24 @@ function App() {
     window.location.reload();
   };
 
-  const handleCopyDifferences = async () => {
-    if (!differences) return;
-
-    try {
-      await navigator.clipboard.writeText(differences);
-      alert("Texto copiado al portapapeles");
-    } catch (error) {
-      console.error("Error al copiar:", error);
-    }
-  };
-
-  const handleCleanDifferences = () => {
-    setDifferences("");
-  };
-
-  const handleCopyExcel = async () => {
-    if (!excelText) return;
-
-    try {
-      await navigator.clipboard.writeText(excelText);
-      alert("Texto copiado al portapapeles");
-    } catch (error) {
-      console.error("Error al copiar:", error);
-    }
-  };
-
-  const handleCleanExcel = () => {
-    setSelectedExcel(null);
-    setExcelText("");
-  };
-
-  const handleCopyPDF = async () => {
-    if (!resultText) return;
-
-    try {
-      await navigator.clipboard.writeText(resultText);
-      alert("Texto copiado al portapapeles");
-    } catch (error) {
-      console.error("Error al copiar:", error);
-    }
-  };
-
-  const handleCleanPDF = () => {
-    setSelectedPDF(null);
-    setSelectedBank("BANAMEX");
-    setResultText("");
-  };
-
   useEffect(() => {
-    console.log("Estado limpiado:", {
-      selectedPDF,
+    console.log("Estado:", {
+      selectedPDF: selectedAccount,
       selectedBank,
-      resultText,
-      selectedExcel,
-      excelText,
-      selectedPrevious,
-      previousText,
-      differences,
+      resultText: assistantResult,
+      selectedExcel: selectedAux,
+      excelText: auxResult,
+      selectedPrevious: selectedPreviousConciliation,
+      previousText: previousConciliationResult,
     });
   }, [
-    selectedPDF,
+    selectedAccount,
     selectedBank,
-    resultText,
-    selectedExcel,
-    excelText,
-    selectedPrevious,
-    previousText,
-    differences,
+    assistantResult,
+    selectedAux,
+    auxResult,
+    selectedPreviousConciliation,
+    previousConciliationResult,
   ]);
 
   return (
@@ -398,7 +324,7 @@ function App() {
             </AccordionSummary>
             <AccordionDetails>
               <div className="flex flex-col p-4 gap-4">
-                <DragDropComponent onFileSelect={handlePDFChange} mode="pdf" />
+                <DragDropComponent onFileSelect={handleAccountChange} mode="pdf" />
                 <Typography
                   variant="subtitle2"
                   className="text-black text-center"
@@ -551,7 +477,7 @@ function App() {
             <AccordionDetails>
               <div className="flex flex-col p-4 gap-4">
                 <DragDropComponent
-                  onFileSelect={handleExcelChange}
+                  onFileSelect={handleAuxChange}
                   mode="excel-csv"
                 />
                 <Typography
@@ -661,7 +587,7 @@ function App() {
             <AccordionDetails>
               <div className="flex flex-col p-4 gap-4">
                 <DragDropComponent
-                  onFileSelect={handlePrevious}
+                  onFileSelect={handlePreviousConciliation}
                   mode="excel-csv"
                 />
                 <Typography
@@ -759,24 +685,18 @@ function App() {
               </div>
             </AccordionSummary>
             <AccordionDetails>
-              {loadingComparison && (
+              {loadingConciliation && (
                 <div className="relative min-h-32 w-full">
                   <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-blue-500"></div>
                   </div>
                 </div>
               )}
-              {/* <textarea
-                  readOnly
-                  value={differences}
-                  disabled
-                  className="w-full min-h-64 rounded-md border-4 border-purple-700 p-4"
-                ></textarea> */}
               <div className="flex gap-4 justify-center">
                 {!stepEight && (
                   <Button
                     variant="contained"
-                    disabled={loadingComparison ? true : false}
+                    disabled={loadingConciliation ? true : false}
                     className="w-1/2 p-2 bg-blue-500 hover:bg-blue-700"
                     onClick={handleVerify}
                   >
