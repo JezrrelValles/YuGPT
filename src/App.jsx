@@ -209,10 +209,9 @@ function App() {
     setLoadingConciliation(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 30000)); // Espera 30 segundos
 
       const response = await fetch(
-        "https://yugpt-server.onrender.com//create_conciliation/",
+        "https://yugpt-server.onrender.com/create_conciliation/",
         {
           method: "POST",
         }
@@ -229,7 +228,7 @@ function App() {
       // Crear un enlace para descargar el archivo
       const a = document.createElement("a");
       a.href = url;
-      a.download = "CONCILIACION_MARZO_2025.xlsx"; // Nombre del archivo
+      a.download = "CONCILIACION.xlsx"; // Nombre del archivo
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
