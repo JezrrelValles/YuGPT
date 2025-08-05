@@ -21,7 +21,7 @@ function App() {
   const [extractedText, setExtractedAccount] = useState("");
   const [assistantResult, setAssistantResult] = useState("");
   const [auxResult, setAuxResult] = useState("");
-  const [compareResult, setCompareResult] = useState("")
+  const [compareResult, setCompareResult] = useState("");
   const [selectedPreviousConciliation, setSelectedPreviousConciliation] =
     useState(null);
   const [previousConciliationResult, setPreviousConciliationResult] =
@@ -92,8 +92,7 @@ function App() {
 
     try {
       const response = await fetch(
-        // "https://yugpt-server.onrender.com/extract_account/"
-        "http://localhost:8000/extract_account/",
+        "https://yugpt-server.onrender.com/extract_account/",
         {
           method: "POST",
           body: formData,
@@ -108,8 +107,7 @@ function App() {
       setExtractedAccount(data);
 
       const secondResponse = await fetch(
-        // "https://yugpt-server.onrender.com/api/new/"
-        "http://localhost:8000/api/new/",
+        "https://yugpt-server.onrender.com/api/new/",
         {
           method: "POST",
           headers: {
@@ -163,8 +161,7 @@ function App() {
 
     try {
       const response = await fetch(
-        // "https://yugpt-server.onrender.com/extract_aux/"
-        "http://localhost:8000/extract_aux/",
+        "https://yugpt-server.onrender.com/extract_aux/",
         {
           method: "POST",
           body: formData,
@@ -211,8 +208,7 @@ function App() {
 
     try {
       const response = await fetch(
-        // "https://yugpt-server.onrender.com/extract_previous/"
-        "http://localhost:8000/extract_previous/",
+        "https://yugpt-server.onrender.com/extract_previous/",
         {
           method: "POST",
           body: formData,
@@ -297,8 +293,7 @@ function App() {
 
     try {
       const response = await fetch(
-        // "https://yugpt-server.onrender.com/create_conciliation/"
-        "http://localhost:8000/create_conciliation/",
+        "https://yugpt-server.onrender.com/create_conciliation/",
         {
           method: "POST",
           headers: {
@@ -324,86 +319,6 @@ function App() {
       a.click();
       document.body.removeChild(a);
       setStepEight(true);
-    } catch (error) {
-      console.error("Error:", error);
-      setErrorConciliation(true);
-    } finally {
-      setLoadingConciliation(false);
-    }
-  };
-
-  const handleCompare = async (e) => {
-    e.preventDefault();
-    setLoadingConciliation(true);
-    setErrorConciliation(false);
-
-    let auxResultParsed;
-    let assistantResultParsed;
-    let prevResultParsed;
-
-    try {
-      auxResultParsed =
-        typeof auxResult === "string" ? JSON.parse(auxResult) : auxResult;
-    } catch (e) {
-      console.log("Error al parsear");
-      setLoadingConciliation(false);
-      setErrorConciliation(true);
-
-      return;
-    }
-
-    try {
-      assistantResultParsed =
-        typeof assistantResult === "string"
-          ? JSON.parse(assistantResult)
-          : assistantResult;
-    } catch (e) {
-      console.log("Error al parsear");
-      setLoadingConciliation(false);
-      setErrorConciliation(true);
-
-      return;
-    }
-
-    try {
-      prevResultParsed =
-        typeof previousConciliationResult === "string"
-          ? JSON.parse(previousConciliationResult)
-          : previousConciliationResult;
-    } catch (e) {
-      console.log("Error al parsear");
-      setLoadingConciliation(false);
-      setErrorConciliation(true);
-
-      return;
-    }
-
-    const data = {
-      aux_transactions: auxResultParsed,
-      assistant_transactions: assistantResultParsed,
-      previous_transactions: prevResultParsed,
-    };
-
-    try {
-      const response = await fetch(
-        // "https://yugpt-server.onrender.com/create_conciliation/"
-        "http://localhost:8000/compare_transactions/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al generar el archivo");
-      }
-
-      const result = response.json()
-      setCompareResult(result)
-      console.log(compareResult)
     } catch (error) {
       console.error("Error:", error);
       setErrorConciliation(true);
@@ -595,7 +510,13 @@ function App() {
               <div className="flex gap-4 items-center">
                 <div className="relative">
                   <Circle
-                    className={stepThree && !errorAssistant ? "text-green-500" : errorAssistant ? "text-red-500" : "text-gray-400"}
+                    className={
+                      stepThree && !errorAssistant
+                        ? "text-green-500"
+                        : errorAssistant
+                        ? "text-red-500"
+                        : "text-gray-400"
+                    }
                     fontSize="large"
                   />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
@@ -983,7 +904,7 @@ function App() {
                     variant="contained"
                     disabled={loadingConciliation ? true : false}
                     className="flex gap-1 w-1/2 p-2 bg-blue-500 hover:bg-blue-700"
-                    onClick={handleVerify} // handleVerify // handleCompare
+                    onClick={handleVerify}
                   >
                     <AutoAwesome />
                     Generar
