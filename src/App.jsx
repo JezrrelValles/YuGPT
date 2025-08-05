@@ -4,10 +4,15 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
-import CircleIcon from "@mui/icons-material/Circle";
 import DragDropComponent from "./components/DragDropComponent";
 import Navbar from "./components/Navbar";
-import { Download, Refresh } from "@mui/icons-material";
+import {
+  Download,
+  Refresh,
+  AutoAwesome,
+  Circle,
+  PlayArrow,
+} from "@mui/icons-material";
 
 function App() {
   const [selectedBank, setSelectedBank] = useState("BANAMEX");
@@ -16,9 +21,11 @@ function App() {
   const [extractedText, setExtractedAccount] = useState("");
   const [assistantResult, setAssistantResult] = useState("");
   const [auxResult, setAuxResult] = useState("");
-  const [selectedPreviousConciliation, setSelectedPreviousConciliation] = useState(null);
-  const [previousConciliationResult, setPreviousConciliationResult] = useState("");
-  const [conciliationResult, setConciliationResult] = useState("");
+  const [compareResult, setCompareResult] = useState("")
+  const [selectedPreviousConciliation, setSelectedPreviousConciliation] =
+    useState(null);
+  const [previousConciliationResult, setPreviousConciliationResult] =
+    useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingAux, setLoadingAux] = useState(false);
@@ -32,6 +39,13 @@ function App() {
   const [stepSix, setStepSix] = useState(false);
   const [stepSeven, setStepSeven] = useState(false);
   const [stepEight, setStepEight] = useState(false);
+  const [resetAux, setResetAux] = useState(0);
+  const [resetAccount, setResetAccount] = useState(0);
+  const [resetPrev, setResetPrev] = useState(0);
+  const [errorAssistant, setErrorAssistant] = useState(false);
+  const [errorAux, setErrorAux] = useState(false);
+  const [errorPrev, setErrorPrev] = useState(false);
+  const [errorConciliation, setErrorConciliation] = useState(false);
 
   const handleBankChange = (e) => {
     setSelectedBank(e.target.value);
@@ -58,6 +72,7 @@ function App() {
     setLoading(true);
     setError(null);
     setAssistantResult("");
+    setErrorAssistant(false);
 
     if (!selectedBank) {
       setError("Por favor, selecciona un banco válido.");
@@ -76,10 +91,14 @@ function App() {
     formData.append("bank", selectedBank);
 
     try {
-      const response = await fetch("https://yugpt-server.onrender.com/extract_account/", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        // "https://yugpt-server.onrender.com/extract_account/"
+        "http://localhost:8000/extract_account/",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Error al procesar el archivo.");
@@ -88,13 +107,17 @@ function App() {
       const data = await response.json();
       setExtractedAccount(data);
 
-      const secondResponse = await fetch("https://yugpt-server.onrender.com/api/new/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      const secondResponse = await fetch(
+        // "https://yugpt-server.onrender.com/api/new/"
+        "http://localhost:8000/api/new/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
 
       if (!secondResponse.ok) {
         throw new Error(
@@ -109,15 +132,16 @@ function App() {
           result.assistant_transactions
         ).transactions;
         setAssistantResult(JSON.stringify(pdfTransactions, null, 2));
+        setStepThree(true);
       } else {
         throw new Error("No se encontraron transacciones en la respuesta");
       }
     } catch (error) {
       console.error("Error: ", error);
       setError("Error al procesar el archivo.");
+      setErrorAssistant(true);
     } finally {
       setLoading(false);
-      setStepThree(true);
     }
   };
 
@@ -126,6 +150,7 @@ function App() {
     setLoadingAux(true);
     setError(null);
     setAuxResult("");
+    setErrorAux(false);
 
     if (!selectedAux) {
       setError("Por favor, selecciona un archivo válido");
@@ -137,10 +162,14 @@ function App() {
     formData.append("file", selectedAux);
 
     try {
-      const response = await fetch("https://yugpt-server.onrender.com/extract_aux/", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        // "https://yugpt-server.onrender.com/extract_aux/"
+        "http://localhost:8000/extract_aux/",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Error al procesar el archivo.");
@@ -151,15 +180,16 @@ function App() {
       if (data.aux_transactions) {
         const csvTransactions = data.aux_transactions;
         setAuxResult(JSON.stringify(csvTransactions, null, 2));
+        setStepFive(true);
       } else {
         throw new Error("No se encontraron transacciones");
       }
     } catch (error) {
       console.error("Error: ", error);
       setError("Error al procesar el archivo.");
+      setErrorAux(true);
     } finally {
       setLoadingAux(false);
-      setStepFive(true);
     }
   };
 
@@ -168,6 +198,7 @@ function App() {
     setLoadingPrevious(true);
     setError(null);
     setPreviousConciliationResult("");
+    setErrorPrev(false);
 
     if (!selectedPreviousConciliation) {
       setError("Por favor, selecciona un archivo válido");
@@ -179,10 +210,14 @@ function App() {
     formData.append("file", selectedPreviousConciliation);
 
     try {
-      const response = await fetch("https://yugpt-server.onrender.com/extract_previous/", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        // "https://yugpt-server.onrender.com/extract_previous/"
+        "http://localhost:8000/extract_previous/",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Error al procesar el archivo.");
@@ -192,28 +227,84 @@ function App() {
 
       if (data.previous_transactions) {
         const previousTransactions = data.previous_transactions;
-        setPreviousConciliationResult(JSON.stringify(previousTransactions, null, 2));
+        setPreviousConciliationResult(
+          JSON.stringify(previousTransactions, null, 2)
+        );
+        setStepSeven(true);
       } else {
         throw new Error("No se encontraron transacciones");
       }
     } catch (error) {
       console.error("Error: ", error);
       setError("Error al procesar el archivo.");
+      setErrorPrev(true);
     } finally {
       setLoadingPrevious(false);
-      setStepSeven(true);
     }
   };
 
-  const handleVerify = async () => {
+  const handleVerify = async (e) => {
+    e.preventDefault();
     setLoadingConciliation(true);
+    setErrorConciliation(false);
+
+    let prevResultParsed;
+    let auxResultParsed;
+    let assistantResultParsed;
 
     try {
+      prevResultParsed =
+        typeof previousConciliationResult === "string"
+          ? JSON.parse(previousConciliationResult)
+          : previousConciliationResult;
+    } catch (e) {
+      console.log("Error al parsear");
+      setLoadingConciliation(false);
+      setErrorConciliation(true);
 
+      return;
+    }
+
+    try {
+      auxResultParsed =
+        typeof auxResult === "string" ? JSON.parse(auxResult) : auxResult;
+    } catch (e) {
+      console.log("Error al parsear");
+      setLoadingConciliation(false);
+      setErrorConciliation(true);
+
+      return;
+    }
+
+    try {
+      assistantResultParsed =
+        typeof assistantResult === "string"
+          ? JSON.parse(assistantResult)
+          : assistantResult;
+    } catch (e) {
+      console.log("Error al parsear");
+      setLoadingConciliation(false);
+      setErrorConciliation(true);
+
+      return;
+    }
+
+    const data = {
+      previousConciliationResult: prevResultParsed,
+      auxResult: auxResultParsed,
+      assistantResult: assistantResultParsed,
+    };
+
+    try {
       const response = await fetch(
-        "https://yugpt-server.onrender.com/create_conciliation/",
+        // "https://yugpt-server.onrender.com/create_conciliation/"
+        "http://localhost:8000/create_conciliation/",
         {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
         }
       );
 
@@ -232,18 +323,100 @@ function App() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      setStepEight(true);
     } catch (error) {
       console.error("Error:", error);
+      setErrorConciliation(true);
     } finally {
       setLoadingConciliation(false);
-      setStepEight(true);
+    }
+  };
+
+  const handleCompare = async (e) => {
+    e.preventDefault();
+    setLoadingConciliation(true);
+    setErrorConciliation(false);
+
+    let auxResultParsed;
+    let assistantResultParsed;
+    let prevResultParsed;
+
+    try {
+      auxResultParsed =
+        typeof auxResult === "string" ? JSON.parse(auxResult) : auxResult;
+    } catch (e) {
+      console.log("Error al parsear");
+      setLoadingConciliation(false);
+      setErrorConciliation(true);
+
+      return;
+    }
+
+    try {
+      assistantResultParsed =
+        typeof assistantResult === "string"
+          ? JSON.parse(assistantResult)
+          : assistantResult;
+    } catch (e) {
+      console.log("Error al parsear");
+      setLoadingConciliation(false);
+      setErrorConciliation(true);
+
+      return;
+    }
+
+    try {
+      prevResultParsed =
+        typeof previousConciliationResult === "string"
+          ? JSON.parse(previousConciliationResult)
+          : previousConciliationResult;
+    } catch (e) {
+      console.log("Error al parsear");
+      setLoadingConciliation(false);
+      setErrorConciliation(true);
+
+      return;
+    }
+
+    const data = {
+      aux_transactions: auxResultParsed,
+      assistant_transactions: assistantResultParsed,
+      previous_transactions: prevResultParsed,
+    };
+
+    try {
+      const response = await fetch(
+        // "https://yugpt-server.onrender.com/create_conciliation/"
+        "http://localhost:8000/compare_transactions/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al generar el archivo");
+      }
+
+      const result = response.json()
+      setCompareResult(result)
+      console.log(compareResult)
+    } catch (error) {
+      console.error("Error:", error);
+      setErrorConciliation(true);
+    } finally {
+      setLoadingConciliation(false);
     }
   };
 
   const handleDownload = async () => {
     try {
       const response = await fetch(
-        "https://yugpt-server.onrender.com/create_conciliation/",
+        // "https://yugpt-server.onrender.com/create_conciliation/"
+        "http://localhost:8000/create_conciliation/",
         {
           method: "POST",
         }
@@ -273,6 +446,39 @@ function App() {
     window.location.reload();
   };
 
+  const handleResetConciliation = () => {
+    setStepEight(false);
+    setErrorConciliation(false);
+  };
+
+  const handleResetAccount = () => {
+    setAssistantResult(null);
+    setSelectedAccount(null);
+    setStepOne(false);
+    setStepTwo(false);
+    setStepThree(false);
+    setErrorAssistant(false);
+    setResetAccount((prev) => prev + 1);
+  };
+
+  const handleResetAux = () => {
+    setAuxResult(null);
+    setSelectedAux(null);
+    setStepFour(false);
+    setStepFive(false);
+    setErrorAux(false);
+    setResetAux((prev) => prev + 1);
+  };
+
+  const handleResetPrev = () => {
+    setPreviousConciliationResult(null);
+    setSelectedPreviousConciliation(null);
+    setStepSix(false);
+    setStepSeven(false);
+    setErrorPrev(false);
+    setResetPrev((prev) => prev + 1);
+  };
+
   useEffect(() => {
     console.log("Estado:", {
       selectedPDF: selectedAccount,
@@ -294,21 +500,21 @@ function App() {
   ]);
 
   return (
-    <div className="h-full w-full bg-[#EEEEEE]">
+    <div className="h-screen w-full bg-[#EEEEEE]">
       <Navbar />
-      <div className="flex justify-center p-4 mt-4 mx-4 rounded-lg bg-white">
+      <div className="flex justify-center p-4 m-4 rounded-lg bg-white">
         <Typography variant="h4" component="h1">
           Conciliación de Estados de Cuenta
         </Typography>
       </div>
-      <div className="grid grid-cols-4 gap-4 p-4 h-full rounded-lg">
+      <div className="grid grid-cols-4 gap-4 m-4">
         {/* Estado de Cuenta */}
-        <div className="bg-white">
+        <div className="bg-white rounded-lg">
           <Accordion expanded={true}>
             <AccordionSummary aria-controls="panel1-content" id="panel1-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon
+                  <Circle
                     className={stepOne ? "text-green-500" : "text-gray-400"}
                     fontSize="large"
                   />
@@ -323,22 +529,17 @@ function App() {
             </AccordionSummary>
             <AccordionDetails>
               <div className="flex flex-col p-4 gap-4">
-                <DragDropComponent onFileSelect={handleAccountChange} mode="pdf" />
+                <DragDropComponent
+                  key={resetAccount}
+                  onFileSelect={handleAccountChange}
+                  mode="pdf"
+                />
                 <Typography
                   variant="subtitle2"
                   className="text-black text-center"
                 >
-                  * El formato permitido es .PDF
+                  Solo se permiten archivos .PDF (máx. 50 MB).
                 </Typography>
-                {/* <label className="w-1/2 p-2 cursor-pointer bg-blue-700 text-white font-bold text-center rounded-lg hover:bg-blue-500">
-                  {selectedPDF ? selectedPDF.name : "Subir"}
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={handlePDFChange}
-                    className="hidden"
-                  />
-                </label> */}
               </div>
             </AccordionDetails>
           </Accordion>
@@ -347,7 +548,7 @@ function App() {
             <AccordionSummary aria-controls="panel2-content" id="panel2-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon
+                  <Circle
                     className={stepTwo ? "text-green-500" : "text-gray-400"}
                     fontSize="large"
                   />
@@ -393,8 +594,8 @@ function App() {
             <AccordionSummary aria-controls="panel3-content" id="panel3-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon
-                    className={stepThree ? "text-green-500" : "text-gray-400"}
+                  <Circle
+                    className={stepThree && !errorAssistant ? "text-green-500" : errorAssistant ? "text-red-500" : "text-gray-400"}
                     fontSize="large"
                   />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
@@ -414,39 +615,64 @@ function App() {
                   </div>
                 </div>
               )}
-              {/* <textarea
-                  readOnly
-                  value={resultText}
-                  disabled
-                  className="w-full min-h-64 rounded-lg border-4 border-blue-500 p-4"
-                ></textarea> */}
               <div className="flex justify-center">
-                {/* <Button variant="outlined" onClick={handleCleanPDF}>
-                <CleaningServices />
-              </Button> */}
-                {/* <Button variant="outlined" onClick={handleCopyPDF}>
-                <ContentPaste />
-              </Button> */}
-                {!stepThree && (
+                {!stepThree && !errorAssistant && (
                   <Button
                     variant="contained"
                     disabled={loading ? true : false}
                     onClick={handleSubmit}
-                    className="w-1/2 bg-blue-500 text-center hover:bg-blue-500"
+                    className="flex gap-1 w-1/2 bg-blue-500 text-center hover:bg-blue-500"
                   >
-                    {loading ? "Cargando..." : "Iniciar"}
+                    {loading ? (
+                      <>Cargando...</>
+                    ) : (
+                      <>
+                        <PlayArrow />
+                        Iniciar
+                      </>
+                    )}
                   </Button>
                 )}
-                {stepThree && (
+                {errorAssistant && (
                   <div className="flex flex-col gap-4 items-center">
                     <div className="relative">
-                      <CircleIcon className="text-green-500" fontSize="large" />
+                      <Circle className="text-red-500" fontSize="large" />
+                      <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
+                        ✖
+                      </Typography>
+                    </div>
+                    <Typography>Error al realizar extracción</Typography>
+                    <Typography variant="caption">Intenta de nuevo.</Typography>
+                    <Button
+                      variant="outlined"
+                      className="flex gap-1"
+                      onClick={handleResetAccount}
+                    >
+                      <Refresh />
+                      Reiniciar proceso
+                    </Button>
+                  </div>
+                )}
+                {stepThree && !errorAssistant && (
+                  <div className="flex flex-col gap-4 items-center">
+                    <div className="relative">
+                      <Circle className="text-green-500" fontSize="large" />
                       <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                         ✔
                       </Typography>
                     </div>
                     <Typography>Extracción realizada con éxito.</Typography>
-                    <Typography variant="caption">Avanza al Paso 4 para continuar con el proceso.</Typography>
+                    <Typography variant="caption">
+                      Avanza al Paso 4 para continuar con el proceso.
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      className="flex gap-1"
+                      onClick={handleResetAccount}
+                    >
+                      <Refresh />
+                      Reiniciar proceso
+                    </Button>
                   </div>
                 )}
               </div>
@@ -455,12 +681,12 @@ function App() {
         </div>
 
         {/* Auxiliar */}
-        <div className="bg-white">
+        <div className="bg-white rounded-lg">
           <Accordion expanded={stepThree}>
             <AccordionSummary aria-controls="panel1-content" id="panel1-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon
+                  <Circle
                     className={stepFour ? "text-green-500" : "text-gray-400"}
                     fontSize="large"
                   />
@@ -476,6 +702,7 @@ function App() {
             <AccordionDetails>
               <div className="flex flex-col p-4 gap-4">
                 <DragDropComponent
+                  key={resetAux}
                   onFileSelect={handleAuxChange}
                   mode="excel-csv"
                 />
@@ -483,18 +710,9 @@ function App() {
                   variant="subtitle2"
                   className="text-black text-center"
                 >
-                  * El formato permitido es .XSLX
+                  Solo se permiten archivos .XSLX (máx. 50 MB).
                 </Typography>
               </div>
-              {/* <label className="w-1/2 p-2 cursor-pointer bg-red-700 text-white font-bold text-center rounded-lg hover:bg-red-500">
-                  {selectedExcel ? selectedExcel.name : "Subir"}
-                  <input
-                    type="file"
-                    accept=".csv, text/csv"
-                    onChange={handleExcelChange}
-                    className="hidden"
-                  />
-                </label> */}
             </AccordionDetails>
           </Accordion>
 
@@ -502,8 +720,14 @@ function App() {
             <AccordionSummary aria-controls="panel3-content" id="panel3-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon
-                    className={stepFive ? "text-green-500" : "text-gray-400"}
+                  <Circle
+                    className={
+                      stepFive && !errorAux
+                        ? "text-green-500"
+                        : errorAux
+                        ? "text-red-500"
+                        : "text-gray-400"
+                    }
                     fontSize="large"
                   />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
@@ -523,54 +747,78 @@ function App() {
                   </div>
                 </div>
               )}
-              {/* <textarea
-                  readOnly
-                  value={excelText}
-                  disabled
-                  className="min-h-64 w-full rounded-lg border-4 border-red-500 p-4"
-                ></textarea> */}
               <div className="flex justify-center">
-                {!stepFive && (
+                {!stepFive && !errorAux && (
                   <Button
                     variant="contained"
                     disabled={loadingAux ? true : false}
                     onClick={handleSubmitAux}
-                    className="w-1/2 bg-blue-500 text-center hover:bg-blue-500"
+                    className="flex gap-1 w-1/2 bg-blue-500 text-center hover:bg-blue-500"
                   >
-                    {loadingAux ? "Cargando..." : "Iniciar"}
+                    {loadingAux ? (
+                      <>Cargando...</>
+                    ) : (
+                      <>
+                        <PlayArrow />
+                        Iniciar
+                      </>
+                    )}
                   </Button>
                 )}
-                {stepFive && (
+                {errorAux && (
                   <div className="flex flex-col gap-4 items-center">
                     <div className="relative">
-                      <CircleIcon className="text-green-500" fontSize="large" />
+                      <Circle className="text-red-500" fontSize="large" />
+                      <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
+                        ✖
+                      </Typography>
+                    </div>
+                    <Typography>Error al realizar extracción</Typography>
+                    <Typography variant="caption">Intenta de nuevo.</Typography>
+                    <Button
+                      variant="outlined"
+                      className="flex gap-1"
+                      onClick={handleResetAux}
+                    >
+                      <Refresh />
+                      Reiniciar proceso
+                    </Button>
+                  </div>
+                )}
+                {stepFive && !errorAux && (
+                  <div className="flex flex-col gap-4 items-center">
+                    <div className="relative">
+                      <Circle className="text-green-500" fontSize="large" />
                       <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                         ✔
                       </Typography>
                     </div>
                     <Typography>Extracción realizada con éxito.</Typography>
-                    <Typography variant="caption">Avanza al Paso 6 para continuar con el proceso.</Typography>
+                    <Typography variant="caption">
+                      Avanza al Paso 6 para continuar con el proceso.
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      className="flex gap-1"
+                      onClick={handleResetAux}
+                    >
+                      <Refresh />
+                      Reiniciar proceso
+                    </Button>
                   </div>
                 )}
-
-                {/* <Button variant="outlined" onClick={handleCleanExcel}>
-                <CleaningServices />
-              </Button> */}
-                {/* <Button variant="outlined" onClick={handleCopyExcel}>
-                <ContentPaste />
-              </Button> */}
               </div>
             </AccordionDetails>
           </Accordion>
         </div>
 
         {/* Conciliación Previa */}
-        <div className="bg-white">
+        <div className="bg-white rounded-lg">
           <Accordion expanded={stepFive}>
             <AccordionSummary aria-controls="panel1-content" id="panel1-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon
+                  <Circle
                     className={stepSix ? "text-green-500" : "text-gray-400"}
                     fontSize="large"
                   />
@@ -586,6 +834,7 @@ function App() {
             <AccordionDetails>
               <div className="flex flex-col p-4 gap-4">
                 <DragDropComponent
+                  key={resetPrev}
                   onFileSelect={handlePreviousConciliation}
                   mode="excel-csv"
                 />
@@ -593,7 +842,7 @@ function App() {
                   variant="subtitle2"
                   className="text-black text-center"
                 >
-                  * El formato permitido es .XSLX
+                  Solo se permiten archivos .XSLX (máx. 50 MB).
                 </Typography>
               </div>
             </AccordionDetails>
@@ -603,8 +852,14 @@ function App() {
             <AccordionSummary aria-controls="panel3-content" id="panel3-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon
-                    className={stepSeven ? "text-green-500" : "text-gray-400"}
+                  <Circle
+                    className={
+                      stepSeven && !errorPrev
+                        ? "text-green-500"
+                        : errorPrev
+                        ? "text-red-500"
+                        : "text-gray-400"
+                    }
                     fontSize="large"
                   />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
@@ -624,39 +879,64 @@ function App() {
                   </div>
                 </div>
               )}
-              {/* <textarea
-                  readOnly
-                  value={excelText}
-                  disabled
-                  className="min-h-64 w-full rounded-lg border-4 border-red-500 p-4"
-                ></textarea> */}
               <div className="flex justify-center">
-                {/* <Button variant="outlined" onClick={handleCleanExcel}>
-                <CleaningServices />
-              </Button> */}
-                {/* <Button variant="outlined" onClick={handleCopyExcel}>
-                <ContentPaste />
-              </Button> */}
-                {!stepSeven && (
+                {!stepSeven && !errorPrev && (
                   <Button
                     variant="contained"
                     disabled={loadingPrevious ? true : false}
                     onClick={handleSubmitPrevious}
-                    className="w-1/2 bg-blue-500 text-center hover:bg-blue-500"
+                    className="flex gap-1 w-1/2 bg-blue-500 text-center hover:bg-blue-500"
                   >
-                    {loadingPrevious ? "Cargando..." : "Iniciar"}
+                    {loadingPrevious ? (
+                      <>Cargando...</>
+                    ) : (
+                      <>
+                        <PlayArrow />
+                        Iniciar
+                      </>
+                    )}
                   </Button>
                 )}
-                {stepSeven && (
+                {errorPrev && (
                   <div className="flex flex-col gap-4 items-center">
                     <div className="relative">
-                      <CircleIcon className="text-green-500" fontSize="large" />
+                      <Circle className="text-red-500" fontSize="large" />
+                      <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
+                        ✖
+                      </Typography>
+                    </div>
+                    <Typography>Error al realizar extracción</Typography>
+                    <Typography variant="caption">Intenta de nuevo.</Typography>
+                    <Button
+                      variant="outlined"
+                      className="flex gap-1"
+                      onClick={handleResetPrev}
+                    >
+                      <Refresh />
+                      Reiniciar proceso
+                    </Button>
+                  </div>
+                )}
+                {stepSeven && !errorPrev && (
+                  <div className="flex flex-col gap-4 items-center">
+                    <div className="relative">
+                      <Circle className="text-green-500" fontSize="large" />
                       <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                         ✔
                       </Typography>
                     </div>
                     <Typography>Extracción realizada con éxito.</Typography>
-                    <Typography variant="caption">Avanza al Paso 8 para completar el proceso.</Typography>
+                    <Typography variant="caption">
+                      Avanza al Paso 8 para completar el proceso.
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      className="flex gap-1"
+                      onClick={handleResetPrev}
+                    >
+                      <Refresh />
+                      Reiniciar proceso
+                    </Button>
                   </div>
                 )}
               </div>
@@ -665,13 +945,19 @@ function App() {
         </div>
 
         {/* Conciliación Actual */}
-        <div className="bg-white">
+        <div className="bg-white rounded-lg">
           <Accordion expanded={stepSeven}>
             <AccordionSummary aria-controls="panel3-content" id="panel3-header">
               <div className="flex gap-4 items-center">
                 <div className="relative">
-                  <CircleIcon
-                    className={stepEight ? "text-green-500" : "text-gray-400"}
+                  <Circle
+                    className={
+                      stepEight && !errorConciliation
+                        ? "text-green-500"
+                        : errorConciliation
+                        ? "text-red-500"
+                        : "text-gray-400"
+                    }
                     fontSize="large"
                   />
                   <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
@@ -692,24 +978,42 @@ function App() {
                 </div>
               )}
               <div className="flex gap-4 justify-center">
-                {!stepEight && (
+                {!stepEight && !errorConciliation && (
                   <Button
                     variant="contained"
                     disabled={loadingConciliation ? true : false}
-                    className="w-1/2 p-2 bg-blue-500 hover:bg-blue-700"
-                    onClick={handleVerify}
+                    className="flex gap-1 w-1/2 p-2 bg-blue-500 hover:bg-blue-700"
+                    onClick={handleVerify} // handleVerify // handleCompare
                   >
+                    <AutoAwesome />
                     Generar
                   </Button>
                 )}
-                {stepEight && (
+                {errorConciliation && (
+                  <div className="flex flex-col gap-4 items-center">
+                    <div className="relative">
+                      <Circle className="text-red-500" fontSize="large" />
+                      <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
+                        ✖
+                      </Typography>
+                    </div>
+                    <Typography>Error al realizar extracción</Typography>
+                    <Typography variant="caption">Intenta de nuevo.</Typography>
+                    <Button
+                      variant="outlined"
+                      className="flex gap-1"
+                      onClick={handleResetConciliation}
+                    >
+                      <Refresh />
+                      Reiniciar proceso
+                    </Button>
+                  </div>
+                )}
+                {stepEight && !errorConciliation && (
                   <div className="flex flex-col gap-4 items-center">
                     <div className="flex flex-col gap-4 items-center">
                       <div className="relative">
-                        <CircleIcon
-                          className="text-green-500"
-                          fontSize="large"
-                        />
+                        <Circle className="text-green-500" fontSize="large" />
                         <Typography className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
                           ✔
                         </Typography>
@@ -717,13 +1021,21 @@ function App() {
                       <Typography>Conciliación realizada con éxito.</Typography>
                     </div>
                     <div className="flex gap-4">
-                      <Button variant="outlined" className="flex gap-4">
-                        REINICIAR
-                        <Refresh onClick={handleReset} />
+                      <Button
+                        variant="outlined"
+                        className="flex gap-1"
+                        onClick={handleReset}
+                      >
+                        <Refresh />
+                        Reiniciar proceso
                       </Button>
-                      <Button variant="contained" className="flex gap-4">
+                      <Button
+                        variant="contained"
+                        className="flex gap-1"
+                        onClick={handleDownload}
+                      >
+                        <Download />
                         Descargar
-                        <Download onClick={handleDownload} />
                       </Button>
                     </div>
                   </div>

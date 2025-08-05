@@ -42,6 +42,7 @@ function DragDropComponent({ onFileSelect, mode = "excel-csv" }) {
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: acceptConfig,
+    maxSize: 52428800,
   });
 
   const getFilePreview = (file) => {
@@ -68,7 +69,7 @@ function DragDropComponent({ onFileSelect, mode = "excel-csv" }) {
       <input {...getInputProps()} />
       <FaFolderOpen className="size-16 fill-yellow-400 mb-4 group-hover:scale-110 transition-transform duration-300" />
       <Typography variant="body1" className="text-center">
-        Arrastra el archivo aquí o haz clic para seleccionarlo.
+        Haz clic para seleccionar un archivo o arrástralo aquí.
       </Typography>
       <div className="mt-4 flex flex-wrap gap-4 justify-center">
         {files.map(({ file, preview }) => (
