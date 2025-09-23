@@ -46,6 +46,7 @@ function App() {
   const [errorAux, setErrorAux] = useState(false);
   const [errorPrev, setErrorPrev] = useState(false);
   const [errorConciliation, setErrorConciliation] = useState(false);
+  const [conciliationFileUrl, setConciliationFileUrl] = useState(null);
 
   const handleBankChange = (e) => {
     setSelectedBank(e.target.value);
@@ -311,6 +312,8 @@ function App() {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
 
+      setConciliationFileUrl(url);
+
       // Crear un enlace para descargar el archivo
       const a = document.createElement("a");
       a.href = url;
@@ -327,34 +330,18 @@ function App() {
     }
   };
 
-  const handleDownload = async () => {
-    try {
-      const response = await fetch(
-        // "https://yugpt-server.onrender.com/create_conciliation/"
-        "http://localhost:8000/create_conciliation/",
-        {
-          method: "POST",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Error al generar el archivo");
-      }
-
-      // Convertir la respuesta a Blob
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      // Crear un enlace para descargar el archivo
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "CONCILIACION_MARZO_2025.xlsx"; // Nombre del archivo
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error("Error:", error);
+  const handleDownload = () => {
+    if (!conciliationFileUrl) {
+      console.error("No hay archivo para descargar.");
+      return;
     }
+
+    const a = document.createElement("a");
+    a.href = conciliationFileUrl;
+    a.download = "CONCILIACION.xlsx"; // Nombre del archivo
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const handleReset = () => {
