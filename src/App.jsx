@@ -93,7 +93,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "https://yugpt-server.onrender.com/extract_account/",
+        "http://10.0.1.243:8000/extract_account/",
         {
           method: "POST",
           body: formData,
@@ -108,7 +108,7 @@ function App() {
       setExtractedAccount(data);
 
       const secondResponse = await fetch(
-        "https://yugpt-server.onrender.com/api/new/",
+        "http://10.0.1.243:8000/api/new/",
         {
           method: "POST",
           headers: {
@@ -162,7 +162,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "https://yugpt-server.onrender.com/extract_aux/",
+        "http://10.0.1.243:8000/extract_aux/",
         {
           method: "POST",
           body: formData,
@@ -209,7 +209,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "https://yugpt-server.onrender.com/extract_previous/",
+        "http://10.0.1.243:8000/extract_previous/",
         {
           method: "POST",
           body: formData,
@@ -294,7 +294,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "https://yugpt-server.onrender.com/create_conciliation/",
+        "http://10.0.1.243:8000/create_conciliation/",
         {
           method: "POST",
           headers: {

@@ -1,88 +1,75 @@
-export const assignBank = async (bank) => {
+// =========================================
+// 🔧 Configuración Global del API
+// =========================================
+
+// Cambia esta URL y tu app usará el nuevo dominio automáticamente
+export const API_BASE_URL = "http://10.0.1.243:8000/api";
+
+
+// =========================================
+// 🔧 Función Genérica para Requests
+// =========================================
+async function apiFetch(endpoint, options = {}) {
     try {
-        let response = await fetch("https://yugpt-server.onrender.com/api/bank", {
-            method: "POST",
-            headers: {
-                "Content-Type": "text/plain"
-            },
-            body: bank
-        })
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
 
         if (!response.ok) {
-            throw new Error('Failed to assign bank');
+            throw new Error(`API error: ${response.status} - ${response.statusText}`);
         }
 
-        return response.json()
+        return response.json();
     } catch (err) {
-        console.log(err.message)
+        console.error("Fetch error:", err.message);
+        throw err;
     }
 }
+
+
+// =========================================
+// 📌 Funciones del API
+// =========================================
+
+export const assignBank = async (bank) => {
+    return apiFetch("/bank", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: bank
+    });
+};
+
 
 export const createNewThread = async (content) => {
-    try {
-        let response = await fetch("https://yugpt-server.onrender.com/api/new", {
-            method: "POST",
-            headers: {
-                "Content-Type": "text/plain"
-            },
-            body: content
-        })
-        
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-
-        return response.json()
-    } catch (err) {
-        console.log(err.message)
-    }
-}
+    return apiFetch("/new", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: content
+    });
+};
 
 
 export const fetchThread = async (threadId) => {
-    try {
-        let response = await fetch(`https://yugpt-server.onrender.com/api/threads/${threadId}`)
-        return response.json()
-    } catch (err) {
-        console.log(err.message)
-    }
-}
+    return apiFetch(`/threads/${threadId}`);
+};
+
 
 export const fetchRun = async (threadId, runId) => {
-    try {
-        let response = await fetch(`https://yugpt-server.onrender.com/api/threads/${threadId}/runs/${runId}`)
-        return response.json()
-    } catch (err) {
-        console.log(err.message)
-    }
-}
+    return apiFetch(`/threads/${threadId}/runs/${runId}`);
+};
+
 
 export const postMessage = async (threadId, message) => {
-    try {
-        let response = await fetch(`https://yugpt-server.onrender.com/api/threads/${threadId}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({content: message})
-        })
-        return response.json()
-    } catch (err) {
-        console.log(err.message)
-    }
-}
+    return apiFetch(`/threads/${threadId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: message })
+    });
+};
+
 
 export const postToolResponse = async (threadId, runId, toolResponses) => {
-    try {
-        let response = await fetch(`https://yugpt-server.onrender.com/api/threads/${threadId}/runs/${runId}/tool`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(toolResponses)
-        })
-        return response.json()
-    } catch (err) {
-        console.log(err.message)
-    }
-}
+    return apiFetch(`/threads/${threadId}/runs/${runId}/tool`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(toolResponses)
+    });
+};
