@@ -92,7 +92,7 @@ function App() {
     formData.append("bank", selectedBank);
 
     try {
-      const extractAccountUrl = "/extract_account/";
+      const extractAccountUrl = "/api/extract_account/";
       const response = await fetch(extractAccountUrl,
         {
           method: "POST",
@@ -107,7 +107,7 @@ function App() {
       const data = await response.json();
       setExtractedAccount(data);
       
-      const executionUrl = "/api/new/";
+      const executionUrl = "/api/api/new/";
       const secondResponse = await fetch(
         executionUrl,
         {
@@ -162,7 +162,7 @@ function App() {
     formData.append("file", selectedAux);
 
     try {
-      const extractAuxUrl = "/extract_aux/";
+      const extractAuxUrl = "/api/extract_aux/";
       const response = await fetch(extractAuxUrl,
         {
           method: "POST",
@@ -209,7 +209,7 @@ function App() {
     formData.append("file", selectedPreviousConciliation);
 
     try {
-      const extractPreviousUrl = "/extract_previous/";
+      const extractPreviousUrl = "/api/extract_previous/";
       const response = await fetch(extractPreviousUrl,
         {
           method: "POST",
@@ -294,7 +294,7 @@ function App() {
     };
 
     try {
-      const conciliationUrl = "/create_conciliation/";
+      const conciliationUrl = "/api/create_conciliation/";
       const response = await fetch(conciliationUrl,
         {
           method: "POST",
