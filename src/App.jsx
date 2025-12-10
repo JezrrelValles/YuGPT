@@ -13,6 +13,7 @@ import {
   Circle,
   PlayArrow,
 } from "@mui/icons-material";
+import { API_BASE_URL } from "./service"; // Asegúrate de importar tu variable global
 
 function App() {
   const [selectedBank, setSelectedBank] = useState("BANAMEX");
@@ -92,8 +93,8 @@ function App() {
     formData.append("bank", selectedBank);
 
     try {
-      const response = await fetch(
-        "http://10.0.1.243:8000/extract_account/",
+      const extractAccountUrl = `${API_BASE_URL}/extract_account/`;
+      const response = await fetch(extractAccountUrl,
         {
           method: "POST",
           body: formData,
@@ -106,9 +107,10 @@ function App() {
 
       const data = await response.json();
       setExtractedAccount(data);
-
+      
+      const executionUrl = `${API_BASE_URL}/api/new/`;
       const secondResponse = await fetch(
-        "http://10.0.1.243:8000/api/new/",
+        executionUrl,
         {
           method: "POST",
           headers: {
@@ -161,8 +163,8 @@ function App() {
     formData.append("file", selectedAux);
 
     try {
-      const response = await fetch(
-        "http://10.0.1.243:8000/extract_aux/",
+      const extractAuxUrl = `${API_BASE_URL}/extract_aux/`;
+      const response = await fetch(extractAuxUrl,
         {
           method: "POST",
           body: formData,
@@ -208,8 +210,8 @@ function App() {
     formData.append("file", selectedPreviousConciliation);
 
     try {
-      const response = await fetch(
-        "http://10.0.1.243:8000/extract_previous/",
+      const extractPreviousUrl = `${API_BASE_URL}/extract_previous/`;
+      const response = await fetch(extractPreviousUrl,
         {
           method: "POST",
           body: formData,
@@ -293,8 +295,8 @@ function App() {
     };
 
     try {
-      const response = await fetch(
-        "http://10.0.1.243:8000/create_conciliation/",
+      const conciliationUrl = `${API_BASE_URL}/create_conciliation/`;
+      const response = await fetch(conciliationUrl,
         {
           method: "POST",
           headers: {

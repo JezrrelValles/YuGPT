@@ -3,7 +3,7 @@
 // =========================================
 
 // Cambia esta URL y tu app usará el nuevo dominio automáticamente
-export const API_BASE_URL = "http://10.0.1.243:8000/api";
+export const API_BASE_URL = import.meta.env.VITE_API_URL
 
 
 // =========================================
@@ -30,7 +30,7 @@ async function apiFetch(endpoint, options = {}) {
 // =========================================
 
 export const assignBank = async (bank) => {
-    return apiFetch("/bank", {
+    return apiFetch("/api/bank", {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: bank
@@ -39,7 +39,7 @@ export const assignBank = async (bank) => {
 
 
 export const createNewThread = async (content) => {
-    return apiFetch("/new", {
+    return apiFetch("/api/new", {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: content
@@ -48,17 +48,17 @@ export const createNewThread = async (content) => {
 
 
 export const fetchThread = async (threadId) => {
-    return apiFetch(`/threads/${threadId}`);
+    return apiFetch(`/api/threads/${threadId}`);
 };
 
 
 export const fetchRun = async (threadId, runId) => {
-    return apiFetch(`/threads/${threadId}/runs/${runId}`);
+    return apiFetch(`/api/threads/${threadId}/runs/${runId}`);
 };
 
 
 export const postMessage = async (threadId, message) => {
-    return apiFetch(`/threads/${threadId}`, {
+    return apiFetch(`/api/threads/${threadId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: message })
@@ -67,7 +67,7 @@ export const postMessage = async (threadId, message) => {
 
 
 export const postToolResponse = async (threadId, runId, toolResponses) => {
-    return apiFetch(`/threads/${threadId}/runs/${runId}/tool`, {
+    return apiFetch(`/api/threads/${threadId}/runs/${runId}/tool`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(toolResponses)
