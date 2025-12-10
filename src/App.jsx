@@ -13,7 +13,6 @@ import {
   Circle,
   PlayArrow,
 } from "@mui/icons-material";
-import { API_BASE_URL } from "./services/api"; // Asegúrate de importar tu variable global
 
 function App() {
   const [selectedBank, setSelectedBank] = useState("BANAMEX");
@@ -93,7 +92,7 @@ function App() {
     formData.append("bank", selectedBank);
 
     try {
-      const extractAccountUrl = `${API_BASE_URL}/extract_account/`;
+      const extractAccountUrl = `/extract_account/`;
       const response = await fetch(extractAccountUrl,
         {
           method: "POST",
@@ -108,7 +107,7 @@ function App() {
       const data = await response.json();
       setExtractedAccount(data);
       
-      const executionUrl = `${API_BASE_URL}/api/new/`;
+      const executionUrl = `/api/new/`;
       const secondResponse = await fetch(
         executionUrl,
         {
@@ -163,7 +162,7 @@ function App() {
     formData.append("file", selectedAux);
 
     try {
-      const extractAuxUrl = `${API_BASE_URL}/extract_aux/`;
+      const extractAuxUrl = `/extract_aux/`;
       const response = await fetch(extractAuxUrl,
         {
           method: "POST",
@@ -210,7 +209,7 @@ function App() {
     formData.append("file", selectedPreviousConciliation);
 
     try {
-      const extractPreviousUrl = `${API_BASE_URL}/extract_previous/`;
+      const extractPreviousUrl = `/extract_previous/`;
       const response = await fetch(extractPreviousUrl,
         {
           method: "POST",
@@ -295,7 +294,7 @@ function App() {
     };
 
     try {
-      const conciliationUrl = `${API_BASE_URL}/create_conciliation/`;
+      const conciliationUrl = `/create_conciliation/`;
       const response = await fetch(conciliationUrl,
         {
           method: "POST",
