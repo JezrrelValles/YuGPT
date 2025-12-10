@@ -1,14 +1,5 @@
-// =========================================
-// 🔧 Configuración Global del API
-// =========================================
-
-// Cambia esta URL y tu app usará el nuevo dominio automáticamente
 export const API_BASE_URL = import.meta.env.VITE_API_URL
 
-
-// =========================================
-// 🔧 Función Genérica para Requests
-// =========================================
 async function apiFetch(endpoint, options = {}) {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
@@ -23,11 +14,6 @@ async function apiFetch(endpoint, options = {}) {
         throw err;
     }
 }
-
-
-// =========================================
-// 📌 Funciones del API
-// =========================================
 
 export const assignBank = async (bank) => {
     return apiFetch("/api/bank", {

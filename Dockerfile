@@ -15,7 +15,10 @@ FROM nginx:stable-alpine AS final
 # Copiar archivos compilados al directorio público de nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Exponer puerto (Nginx usa 80)
+# Copiar nginx.conf personalizado
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Exponer puerto 80
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
