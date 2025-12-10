@@ -13,7 +13,7 @@ import {
   Circle,
   PlayArrow,
 } from "@mui/icons-material";
-import { API_BASE_URL } from "./service"; // Asegúrate de importar tu variable global
+import { API_BASE_URL } from "./services/api"; // Asegúrate de importar tu variable global
 
 function App() {
   const [selectedBank, setSelectedBank] = useState("BANAMEX");
