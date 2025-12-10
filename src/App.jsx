@@ -107,7 +107,7 @@ function App() {
       const data = await response.json();
       setExtractedAccount(data);
       
-      const executionUrl = "/api/api/new/";
+      const executionUrl = "/api/openai/new/";
       const secondResponse = await fetch(
         executionUrl,
         {
